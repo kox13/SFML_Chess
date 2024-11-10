@@ -6,19 +6,20 @@
 
 class AssetsManager {
 public:
-	AssetsManager& Instance();
+	static AssetsManager& Instance();
 
-	void Initialize();
-	void Shutdown();
+	static bool Initialize();
+	static void Shutdown();
 
-	std::shared_ptr<sf::Font> GetFont() const { return m_Font; }
+	std::shared_ptr<sf::Font> GetFont() const { return m_Font; } 
+	std::shared_ptr<sf::Texture> GetTexture(const std::string& name) const { return m_Textures.at(name); } //TODO: Handle edge cases
 
 private:
-	AssetsManager();
+	AssetsManager() = default;
 	~AssetsManager() = default;
 
-	void LoadFont();
-	void LoadTextures();
+	bool LoadFont();
+	bool LoadTextures();
 
 private:
 	std::unordered_map<std::string, std::shared_ptr<sf::Texture>> m_Textures;
