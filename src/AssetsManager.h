@@ -1,28 +1,23 @@
 #pragma once
-#include <SFML/Graphics.hpp>
-#include <string>
+
+#include <SFML/Graphics/Texture.hpp>
+#include <SFML/Graphics/Font.hpp>
+
 #include <unordered_map>
 #include <memory>
 
 class AssetsManager {
 public:
-	static AssetsManager& Instance();
-
-	static bool Initialize();
-	static void Shutdown();
-
-	std::shared_ptr<sf::Font> GetFont() const { return m_Font; } 
-	std::shared_ptr<sf::Texture> GetTexture(const std::string& name) const { return m_Textures.at(name); } //TODO: Handle edge cases
-
-private:
 	AssetsManager() = default;
 	~AssetsManager() = default;
 
-	bool LoadFont();
-	bool LoadTextures();
+	void AddTexture(unsigned int id, const std::string& path);
+	void SetFont(const std::string& path);
 
+	std::shared_ptr<sf::Texture> GetTexture(unsigned int id) const { return m_Textures.find(id) == m_Textures.end() ? nullptr : m_Textures.at(id); }
+	std::shared_ptr<sf::Font> GetFont() const { return m_Font; }
 private:
-	std::unordered_map<std::string, std::shared_ptr<sf::Texture>> m_Textures;
+	std::unordered_map<unsigned int, std::shared_ptr<sf::Texture>> m_Textures;
 	std::shared_ptr<sf::Font> m_Font;
 };
 
