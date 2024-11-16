@@ -1,4 +1,5 @@
 #include "Game.h"
+#include "Logger.h"
 
 #include <iostream>
 #include <SFML/Graphics.hpp>
@@ -8,6 +9,8 @@ Game::Game()
 {}
 
 void Game::Run() {
+    Logger::Initialize();
+
     sf::RenderWindow& window = *m_Context.m_Window;
     window.create(sf::VideoMode(1337, 766), "SFML works!");
 
@@ -36,4 +39,6 @@ void Game::Run() {
         window.draw(shape);
         window.display();
     }
+
+    Logger::Shutdown();
 }
