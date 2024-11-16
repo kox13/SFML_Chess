@@ -1,11 +1,14 @@
 #pragma once
 #include <streambuf>
-#include <string>
+#include <cstdio>
+#include <cstring>
+#include <mutex>
 
-#define LOG_ERROR(error) Logger::Instance().LogError(error, __FILE__, __LINE__)
-#define LOG_WARNING(warning) Logger::Instance().LogWarning(warning, __FILE__, __LINE__)
-#define LOG_MESSAGE(message) Logger::Instance().LogMessage(message)
-#define LOG_CMESSAGE(message, color) Logger::Instance().LogMessage(message, color)
+#define FILE_NAME (strrchr(__FILE__, '/') ? strrchr(__FILE__, '/') + 1 : (strrchr(__FILE__, '\\') ? strrchr(__FILE__, '\\') + 1 : __FILE__))
+#define LOG_MESSAGE(format, ...)  Logger::Message(format, __VA_ARGS__)
+#define LOG_CMESSAGE(color, format, ...) Logger::Message(color, format, __VA_ARGS__)
+#define LOG_WARNING(format, ...)  Logger::Warning(FILE_NAME, __LINE__, format, __VA_ARGS__)
+#define LOG_ERROR(format, ...)	  Logger::Error(FILE_NAME, __LINE__, format, __VA_ARGS__)
 
 class Logger : public std::streambuf {
 public:
@@ -20,19 +23,49 @@ public:
 		WHITE
 	};
 
-	static Logger& Instance();
-
-	static bool Initialize();
+	// Initialization creates a Logger instance to redirect the SFML err stream to it, 
+	// but other than that the instance won't be used
+	static void Initialize();
 	static void Shutdown();
 
-	void LogError(const std::string&, const char* file, unsigned int line);
-	void LogWarning(const std::string& warning, const char* file, unsigned int line);
-	void LogMessage(const std::string& message, Color color = Color::WHITE);
+	template<typename... Args>
+	static void Message(const char* message, Args... args) {
+		std::lock_guard<std::mutex> lock(s_Lock);
+		std::printf("[MESSAGE]: ");
+		std::printf(message, args...);
+		std::printf("\n");
+	}
+
+	template<typename... Args>
+	static void Message(Color color, const char* message, Args... args) {
+		std::lock_guard<std::mutex> lock(s_Lock);
+		std::printf("\033[%im[MESSAGE]: ", (int)color);
+		std::printf(message, args...);
+		std::printf("\033[0m\n");
+	}
+
+	template<typename... Args>
+	static void Warning(const char* file, unsigned int line, const char* message, Args... args) {
+		std::lock_guard<std::mutex> lock(s_Lock);
+		std::printf("\033[%im[WARNING]: ", (int)Color::YELLOW);
+		std::printf(message, args...);
+		std::printf("\033[0m <in %s at %i> \n", file, line);
+	}
+
+	template<typename... Args>
+	static void Error(const char* file, unsigned int line, const char* message, Args... args) {
+		std::lock_guard<std::mutex> lock(s_Lock);
+		std::printf("\033[%im[ERROR]: ", (int)Color::RED);
+		std::printf(message, args...);
+		std::printf("\033[0m <in %s at %i> \n", file, line);
+	}
 
 	virtual int overflow(int c) override;
 
 private:
 	Logger();
 	~Logger() = default;
+
+	static std::mutex s_Lock;
 };
 
