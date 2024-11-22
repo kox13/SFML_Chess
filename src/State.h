@@ -1,8 +1,12 @@
 #pragma once
 
+#include <SFML/Window/Event.hpp>
+
+struct Context;
+
 class State {
 public:
-	State() = default;
+	State(Context& context) : m_Context(context) {};
 	virtual ~State() = default;
 
 	virtual void Initialize() = 0;
@@ -11,8 +15,11 @@ public:
 	virtual void Pause() {}
 	virtual void Resume() {}
 
-	virtual void ProcessInput() = 0;
+	virtual void ProcessInput(sf::Event& event) = 0;
 	virtual void Update(float deltaTime) = 0;
 	virtual void Draw() = 0;
+
+protected:
+	Context& m_Context;
 };
 
