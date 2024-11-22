@@ -3,8 +3,8 @@
 
 #include <cassert>
 
-StateManager::StateManager(Context& context)
-	: m_Context(context), m_Replace(false), m_NewState(nullptr)
+StateManager::StateManager()
+	: m_Replace(false), m_NewState(nullptr)
 {}
 
 void StateManager::Initialize() {}
@@ -46,18 +46,26 @@ void StateManager::ChangeState() {
 }
 
 void StateManager::Update(float deltaTime) {
-
 	if (State* state = GetCurrent())
 		state->Update(deltaTime);
 }
 
-void StateManager::ProcessInput() {
+void StateManager::ProcessInput(sf::Event& event, sf::RenderWindow& window) {
+	while (window.pollEvent(event)) {
+		if (event.type == sf::Event::Closed) {
+			window.close();
+			break;
+		}
 
-	if (State* state = GetCurrent())
-		state->ProcessInput();
+		if (State* state = GetCurrent())
+			state->ProcessInput(event);
+	}
 }
 
-void StateManager::Draw() {
-	if (State* state = GetCurrent())
+void StateManager::Draw(sf::RenderWindow& window) {
+	if (State* state = GetCurrent()) {
+		window.clear();
 		state->Draw();
+		window.display();
+	}
 }

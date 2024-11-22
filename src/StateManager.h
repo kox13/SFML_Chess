@@ -1,15 +1,15 @@
 #pragma once
 
 #include "State.h"
+#include <SFML/Window/Event.hpp>
+#include <SFML/Graphics/RenderWindow.hpp>
 
 #include <memory>
 #include <stack>
 
-struct Context;
-
 class StateManager {
 public:
-	StateManager(Context& context);
+	StateManager();
 	~StateManager() = default;
 
 	void Initialize();
@@ -20,14 +20,13 @@ public:
 	void Pop();
 	void ChangeState();
 
-	State* GetCurrent() const { return m_States.empty() ? nullptr : m_States.top().get(); }
+	State* const GetCurrent() const { return m_States.empty() ? nullptr : m_States.top().get(); }
 
 	void Update(float deltaTime);
-	void ProcessInput();
-	void Draw();
+	void ProcessInput(sf::Event& event, sf::RenderWindow& window);
+	void Draw(sf::RenderWindow& window);
 
 private:
-	Context& m_Context;
 	std::stack<std::unique_ptr<State>> m_States;
 	std::unique_ptr<State> m_NewState;
 	bool m_Replace;
