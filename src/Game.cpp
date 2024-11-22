@@ -1,5 +1,6 @@
 #include "Game.h"
 #include "Logger.h"
+#include "MainMenuState.h"
 
 #include <iostream>
 #include <SFML/Graphics.hpp>
@@ -10,34 +11,29 @@ Game::Game()
 
 void Game::Run() {
     Logger::Initialize();
-
-    sf::RenderWindow& window = *m_Context.m_Window;
+    
+    StateManager& gameState = m_Context.GetGameState();
+    sf::RenderWindow& window = m_Context.GetWindow();
     window.create(sf::VideoMode(1337, 766), "SFML works!");
 
-    sf::CircleShape shape(100.f);
-    shape.setFillColor(sf::Color::Green);
+    m_Context.GetAssetsManager().SetFont("assets/font/RobotoMono-Regular.ttf");
 
     float deltaTime;
     sf::Clock clock;
     clock.restart();
 
-    while (window.isOpen()) {
+    MainMenuState* mainMenu = new MainMenuState(m_Context);
+    gameState.Push(std::make_unique<MainMenuState>(*mainMenu));
+
+    sf::Event event;
+
+    while (window.isOpen() && m_Run) {
         deltaTime = clock.restart().asSeconds();
 
-        m_Context.m_GameState->ChangeState();
-        m_Context.m_GameState->ProcessInput();
-        m_Context.m_GameState->Update(deltaTime);
-        m_Context.m_GameState->Draw();
-
-        sf::Event event;
-        while (window.pollEvent(event)) {
-            if (event.type == sf::Event::Closed)
-                window.close();
-        }
-
-        window.clear();
-        window.draw(shape);
-        window.display();
+        gameState.ChangeState();
+        gameState.ProcessInput(event, window);
+        gameState.Update(deltaTime);
+        gameState.Draw(window);
     }
 
     Logger::Shutdown();
