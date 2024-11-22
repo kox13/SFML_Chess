@@ -11,34 +11,37 @@
 #include <functional>
 #include <cassert>
 
+// TODO: MouseEntered and MouseLeft events
 class Button {
 public:
-	Button(std::shared_ptr<sf::Font> font, const std::string& text, int x, int y, int width, int height, sf::Color textColor, sf::Color backgroundColor);
-	Button(std::shared_ptr<sf::Font> font, const std::string& text, int x, int y, int width, int height);
+	Button(sf::Font& font, const std::string& text, float x, float y, float width, float height, sf::Color textColor, sf::Color backgroundColor);
+	Button(sf::Font& font, const std::string& text, float x, float y, float width, float height);
 	~Button() = default;	
 
 	void SetTextColor(sf::Color color);
 	void SetBackgroundColor(sf::Color color);
-	void Draw(sf::RenderWindow& window) const;
 
 	template<typename T>
-	void SetOnClick(void(*function)(), T* instance);
+	void SetOnClick(void(T::*function)(), T* instance);
 	void SetOnClick(void(*function)());
+
+	void Draw(sf::RenderWindow& window) const;
+	void ProcessInput(sf::Event& event);
+
+private:
+	bool IsInBounds(float x, float y) const;
 
 private:
 	sf::RectangleShape m_Rect;
-	std::shared_ptr<sf::Font> m_Font;
 	sf::Text m_Text;
 	std::function<void()> m_OnClick;
-	sf::Color m_TextColor = s_DEFAULT_TEXT_COLOR;
-	sf::Color m_BackgroundColor = s_DEFAULT_BACKGROUND_COLOR;
 
 	static const sf::Color s_DEFAULT_TEXT_COLOR;
 	static const sf::Color s_DEFAULT_BACKGROUND_COLOR;
 };
 
 template<typename T>
-inline void Button::SetOnClick(void(*function)(), T* instance) {
+inline void Button::SetOnClick(void(T::*function)(), T* instance) {
 	assert(instance != nullptr && function != nullptr);
 	m_OnClick = std::bind(function, instance);
 }
